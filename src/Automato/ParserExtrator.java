@@ -72,6 +72,22 @@ public class ParserExtrator {
 
     }
 
+    public void conectaMain(String datai) throws IOException, ParserConfigurationException {
+
+        try {
+
+            urlLogin = Jsoup.connect(URL_MAIN)//Acessa a página principal
+                    .timeout(10000)
+                    .method(Connection.Method.GET)
+                    .execute();
+
+        } catch (SocketException | SocketTimeoutException e) {
+            error = "Conexão com a internet perdida.\n" + "Execute o software novamente!";
+            System.out.println(error);
+            System.exit(0);
+        }
+    }
+
     public void extrairValor(String datai) throws IOException, ParserConfigurationException {
         if (firstValidDateCheck) {
             firstValidDateCheck = false;//Disabilita na primeira vez que entrar no método
@@ -102,18 +118,7 @@ public class ParserExtrator {
 
             getDadosSessão(elementsTagA); //Obtém os dados representados por "*" da URL : "https://wwws.portaldoservidor.pr.gov.br/ccheque/usuarios/contrachequeM4.asp?id=*****&datap=****-**-**&datai=****-**-**&tipop=*&tipoi=*&rg=***************&UfRg=**&organismo=**"
 
-            boletoContracheque = (Document) Jsoup.connect(URL_MAIN + "usuarios/contrachequeM4.asp") //Retorna o html do boleto de contracheque
-                    .timeout(20000)
-                    .data("id", id) //Dados de autenticação extraidos a página secundária pelo método getDadosSessão
-                    .data("datap", datap)
-                    .data("datai", datai)
-                    .data("tipop", tipop)
-                    .data("tipoi", tipoi)
-                    .data("rg", rg)
-                    .data("UfRg", ufrg)
-                    .data("organismo", organismo)//
-                    .cookies(urlLogin.cookies())
-                    .get();
+            boletoContracheque = getHtmlContracheque(datai);
 
             Elements elementsTagFont = boletoContracheque.getElementsByTag("font"); //Filtra o código html do boletim retornando os elesmentos de tag <font>
 
@@ -149,6 +154,48 @@ public class ParserExtrator {
             System.out.println(error);
             System.exit(0);
         }
+
+    }
+
+    public void getDadosSessão(Elements elementsTag) {
+        int i = 0;
+        try {
+            while (!elementsTag.get(i).toString().substring(122, 124).equals("1&")) {
+                i++;
+            }
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Os dados de autenticação estão incorretos.");
+            System.exit(0);
+        }
+        id = elementsTag.get(i).toString().substring(62, 71).replaceAll(regularExpressionToInt, "");
+        datap = elementsTag.get(i).toString().substring(80, 90);
+//      datai = root.get(1).toString().substring(102, 111);
+        tipop = elementsTag.get(i).toString().substring(122, 123);
+        tipoi = elementsTag.get(i).toString().substring(134, 135);
+        rg = elementsTag.get(i).toString().substring(143, 158);
+        ufrg = elementsTag.get(i).toString().substring(168, 170);
+        organismo = elementsTag.get(i).toString().substring(185, 187);
+
+//        if ((elementsTag.size() == 3)) {}
+//        if (elementsTag.size() > 3 && (elementsTag.get(1).toString().substring(122, 124).equals("1&"))) {}
+//        if ((elementsTag.size() > 3) && !(elementsTag.get(1).toString().substring(122, 124).equals("1&"))) {}
+//        if ((elementsTag.size() > 4) && (elementsTag.get(3).toString().substring(122, 124).equals("1&"))) {}
+    }
+
+    public Document getHtmlContracheque(String datai) throws IOException {
+
+        return Jsoup.connect(URL_MAIN + "usuarios/contrachequeM4.asp") //Retorna o html do boleto de contracheque
+                .timeout(20000)
+                .data("id", id) //Dados de autenticação extraidos a página secundária pelo método getDadosSessão
+                .data("datap", datap)
+                .data("datai", datai)
+                .data("tipop", tipop)
+                .data("tipoi", tipoi)
+                .data("rg", rg)
+                .data("UfRg", ufrg)
+                .data("organismo", organismo)//
+                .cookies(urlLogin.cookies())
+                .get();
 
     }
 
@@ -192,47 +239,6 @@ public class ParserExtrator {
         return nextDate;
     }
 
-    public void getDadosSessão(Elements elementsTag) {
-        int i = 0;
-        try {
-            while (!elementsTag.get(i).toString().substring(122, 124).equals("1&")) {
-                i++;
-            }
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("Os dados de autenticação estão incorretos.");
-            System.exit(0);
-        }
-        id = elementsTag.get(i).toString().substring(62, 71).replaceAll(regularExpressionToInt, "");
-        datap = elementsTag.get(i).toString().substring(80, 90);
-//      datai = root.get(1).toString().substring(102, 111);
-        tipop = elementsTag.get(i).toString().substring(122, 123);
-        tipoi = elementsTag.get(i).toString().substring(134, 135);
-        rg = elementsTag.get(i).toString().substring(143, 158);
-        ufrg = elementsTag.get(i).toString().substring(168, 170);
-        organismo = elementsTag.get(i).toString().substring(185, 187);
-
-//        if ((elementsTag.size() == 3)) {
-//        if (elementsTag.size() > 3 && (elementsTag.get(1).toString().substring(122, 124).equals("1&"))) {
-//        if ((elementsTag.size() > 3) && !(elementsTag.get(1).toString().substring(122, 124).equals("1&"))) {
-//        if ((elementsTag.size() > 4) && (elementsTag.get(3).toString().substring(122, 124).equals("1&"))) {
-
-    }
-
-    public void conectaMain(String datai) throws IOException, ParserConfigurationException {
-        try {
-
-            urlLogin = Jsoup.connect(URL_MAIN)//Acessa a página principal
-                    .timeout(10000)
-                    .method(Connection.Method.GET)
-                    .execute();
-
-        } catch (SocketException | SocketTimeoutException e) {
-            error = "Conexão com a internet perdida.\n" + "Execute o software novamente!";
-            System.out.println(error);
-            System.exit(0);
-        }
-    }
-
     public String getNome() {
         Elements elementsTagFont = null;
 
@@ -258,10 +264,6 @@ public class ParserExtrator {
         return nome;
     }
 
-//    Pode ser utilizado futuramente.
-//    public void setNome(String nome) {
-//        this.nome = nome;
-//    }
     public List<String> getListaValores() {
         return listaValores;
     }

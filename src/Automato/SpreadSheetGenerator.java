@@ -2,11 +2,11 @@ package Automato;
 
 import java.io.FileNotFoundException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -16,22 +16,25 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  *
  * @author Torres
  */
-public class GeradorPlanilhaPrev {
+public class SpreadSheetGenerator {
 
-    int posicaoAtualListaValores = 0;//Controla a posição que está na Lista de Valores
     ParserExtrator user;
-    String dataInicio;
-    String dataFim;
-    int atributo;//Define qual atributo será extraido
-
     FileInputStream file;
     XSSFWorkbook workbook;
 
-    public GeradorPlanilhaPrev(ParserExtrator user, String dataInicio, String dataFim, int atributo) throws FileNotFoundException, IOException, InvalidFormatException {
+    int posicaoAtualListaValores = 0;//Controla a posição que está na Lista de Valores
+    int atributo;//Define qual atributo será extraido
+
+    String dataInicio;
+    String dataFim;
+
+    public SpreadSheetGenerator(ParserExtrator user, String dataInicio, String dataFim, int atributo) throws FileNotFoundException, IOException, InvalidFormatException {
+
         this.user = user;
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
         this.atributo = atributo;
+
     }
 
     public void run() throws IOException {
@@ -50,7 +53,6 @@ public class GeradorPlanilhaPrev {
     }
 
     public void lerModelo() throws FileNotFoundException, IOException {
-
         if (user.getAtributo() == 1) {
             file = new FileInputStream(new File("resources/Modelo - FASPM.xlsx").getAbsolutePath());
         } else if (user.getAtributo() == 2) {
@@ -58,7 +60,6 @@ public class GeradorPlanilhaPrev {
         }
 
         workbook = new XSSFWorkbook(file);
-        workbook.setSheetName(0, user.getNome());
 
     }
 
@@ -151,7 +152,9 @@ public class GeradorPlanilhaPrev {
 
     public void geraArquivo() throws FileNotFoundException, IOException {
 
+        workbook.setSheetName(0, user.getNome());
         workbook.setForceFormulaRecalculation(true);//Atualiza as formúlas pré-existentes na planilha.
+
         FileOutputStream filewrite = null;
 
         if (user.getAtributo() == 1) {
